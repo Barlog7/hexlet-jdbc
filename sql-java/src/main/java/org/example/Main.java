@@ -1,45 +1,39 @@
 package org.example;
 
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Optional;
+
 // Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
-    public static void main(String[] args) throws SQLException{
+    /*private Connection connection;*/
+    public static void main(String[] args) throws SQLException {
         // Создаем соединение с базой в памяти
         // База создается прямо во время выполнения этой строчки
         // Здесь hexlet_test — это имя базы данных
         try (var conn = DriverManager.getConnection("jdbc:h2:mem:hexlet_test")) {
-
+            //var conn = DriverManager.getConnection("jdbc:h2:mem:hexlet_test");
 
             var sql = "CREATE TABLE users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(255), phone VARCHAR(255))";
             // Чтобы выполнить запрос, создадим объект statement
-            try (var statement = conn.createStatement()) {
-                statement.execute(sql);
-            }
-            //statement.close(); // В конце закрываем
+            var statement = conn.createStatement();
+            statement.execute(sql);
+            statement.close(); // В конце закрываем
 
-            var sql2 = "INSERT INTO users (username, phone) VALUES ('tommy', '123456789')";
-            try (var statement2 = conn.createStatement()) {
-                statement2.executeUpdate(sql2);
-            }
-            //statement2.close();
+            var dao = new UserDAO(conn);
+            var user = new User("Maria", "888888888");
 
-            var sql3 = "SELECT * FROM users";
-            try (var statement3 = conn.createStatement()) {
-                // Здесь вы видите указатель на набор данных в памяти СУБД
-                var resultSet = statement3.executeQuery(sql3);
-                // Набор данных — это итератор
-                // Мы перемещаемся по нему с помощью next() и каждый раз получаем новые значения
-                while (resultSet.next()) {
-                    System.out.println(resultSet.getString("username"));
-                    System.out.println(resultSet.getString("phone"));
-                }
-            }
-        //statement3.close();
+            dao.save(user);
 
-        // Закрываем соединение
-        //conn.close();
+            var user2 = dao.find(user.getId()).get();
+            Long l1 = user2.getId();
+            Long l2 = user.getId();
+            dao.delete(user2);
+            //user2.getId() == user.getId(); // true
+
         }
     }
 }
